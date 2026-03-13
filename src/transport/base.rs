@@ -52,16 +52,29 @@ impl BaseTransport {
     }
 
     /// Subscribe to events targeting a pubkey (both regular and encrypted).
+    ///
+    /// Uses two filters: one for ephemeral ContextVM messages (kind 25910)
+    /// with `since: now()`, and one for NIP-59 gift wraps (kind 1059) without
+    /// a `since` constraint. Gift wraps use randomized timestamps per NIP-59,
+    /// so a `since: now()` filter would reject most incoming encrypted messages.
     pub async fn subscribe_for_pubkey(&self, pubkey: &PublicKey) -> Result<()> {
-        let filter = Filter::new()
-            .kinds(vec![
-                Kind::Custom(CTXVM_MESSAGES_KIND),
-                Kind::Custom(GIFT_WRAP_KIND),
-            ])
-            .custom_tag(SingleLetterTag::lowercase(Alphabet::P), pubkey.to_hex())
+        let p_tag = pubkey.to_hex();
+
+        // Ephemeral ContextVM messages — safe to use since:now()
+        let ephemeral_filter = Filter::new()
+            .kind(Kind::Custom(CTXVM_MESSAGES_KIND))
+            .custom_tag(SingleLetterTag::lowercase(Alphabet::P), p_tag.clone())
             .since(Timestamp::now());
 
-        self.relay_pool.subscribe(vec![filter]).await
+        // NIP-59 gift wraps — timestamps are randomized (up to ±48h or more),
+        // so we must NOT use since:now(). Limit to recent window instead.
+        let two_days_ago = Timestamp::from(Timestamp::now().as_u64().saturating_sub(2 * 24 * 3600));
+        let gift_wrap_filter = Filter::new()
+            .kind(Kind::Custom(GIFT_WRAP_KIND))
+            .custom_tag(SingleLetterTag::lowercase(Alphabet::P), p_tag)
+            .since(two_days_ago);
+
+        self.relay_pool.subscribe(vec![ephemeral_filter, gift_wrap_filter]).await
     }
 
     /// Convert a Nostr event to an MCP message with validation.
