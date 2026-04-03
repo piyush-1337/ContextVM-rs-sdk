@@ -181,7 +181,9 @@ impl NostrClientTransport {
             if let RelayPoolNotification::Event { event, .. } = notification {
                 // Handle gift-wrapped events
                 let (actual_event_content, actual_pubkey, e_tag) =
-                    if event.kind == Kind::Custom(GIFT_WRAP_KIND) {
+                    if event.kind == Kind::Custom(GIFT_WRAP_KIND)
+                        || event.kind == Kind::Custom(EPHEMERAL_GIFT_WRAP_KIND)
+                    {
                         // Single-layer NIP-44 decrypt (matches JS/TS SDK)
                         let signer = match client.signer().await {
                             Ok(s) => s,
@@ -246,7 +248,6 @@ impl NostrClientTransport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::types::*;
 
     #[test]
     fn test_config_defaults() {

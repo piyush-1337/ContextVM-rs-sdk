@@ -323,6 +323,10 @@ impl NostrServerTransport {
                 TagKind::Custom(tags::SUPPORT_ENCRYPTION.into()),
                 Vec::<String>::new(),
             ));
+            tags.push(Tag::custom(
+                TagKind::Custom(tags::SUPPORT_ENCRYPTION_EPHEMERAL.into()),
+                Vec::<String>::new(),
+            ));
         }
 
         let builder =
@@ -429,7 +433,9 @@ impl NostrServerTransport {
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
                 let (content, sender_pubkey, event_id, is_encrypted) =
-                    if event.kind == Kind::Custom(GIFT_WRAP_KIND) {
+                    if event.kind == Kind::Custom(GIFT_WRAP_KIND)
+                        || event.kind == Kind::Custom(EPHEMERAL_GIFT_WRAP_KIND)
+                    {
                         if encryption_mode == EncryptionMode::Disabled {
                             tracing::warn!("Received encrypted message but encryption is disabled");
                             continue;
