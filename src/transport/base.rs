@@ -60,26 +60,21 @@ impl BaseTransport {
     pub async fn subscribe_for_pubkey(&self, pubkey: &PublicKey) -> Result<()> {
         let p_tag = pubkey.to_hex();
 
-        // Ephemeral ContextVM messages — safe to use since:now()
         let ephemeral_filter = Filter::new()
             .kind(Kind::Custom(CTXVM_MESSAGES_KIND))
             .custom_tag(SingleLetterTag::lowercase(Alphabet::P), p_tag.clone())
             .since(Timestamp::now());
 
-        // NIP-59 gift wraps — timestamps are randomized (up to ±48h or more),
-        // so we must NOT use since:now(). Limit to recent window instead.
-        let two_days_ago = Timestamp::from(Timestamp::now().as_u64().saturating_sub(2 * 24 * 3600));
+        let now = Timestamp::now();
         let gift_wrap_filter = Filter::new()
             .kind(Kind::Custom(GIFT_WRAP_KIND))
             .custom_tag(SingleLetterTag::lowercase(Alphabet::P), p_tag.clone())
-            .since(two_days_ago);
+            .since(now);
 
-        // CEP-19: Ephemeral gift wraps (kind 21059) — same semantics as 1059
-        // but in the ephemeral range so relays don't persist them.
         let ephemeral_gift_wrap_filter = Filter::new()
             .kind(Kind::Custom(EPHEMERAL_GIFT_WRAP_KIND))
             .custom_tag(SingleLetterTag::lowercase(Alphabet::P), p_tag)
-            .since(two_days_ago);
+            .since(now);
 
         self.relay_pool
             .subscribe(vec![

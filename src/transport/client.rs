@@ -17,6 +17,7 @@ use crate::core::types::*;
 use crate::encryption;
 use crate::relay::RelayPool;
 use crate::transport::base::BaseTransport;
+use rmcp::model::ProtocolVersion;
 
 /// Configuration for the client transport.
 pub struct NostrClientTransportConfig {
@@ -153,7 +154,7 @@ impl NostrClientTransport {
             jsonrpc: "2.0".to_string(),
             id: request_id.clone(),
             result: serde_json::json!({
-                "protocolVersion": "2025-07-02",
+                "protocolVersion": ProtocolVersion::LATEST.to_string(),
                 "serverInfo": {
                     "name": "Emulated-Stateless-Server",
                     "version": "1.0.0"
@@ -276,7 +277,7 @@ mod tests {
             jsonrpc: "2.0".to_string(),
             id: request_id.clone(),
             result: serde_json::json!({
-                "protocolVersion": "2025-07-02",
+                "protocolVersion": ProtocolVersion::LATEST.to_string(),
                 "serverInfo": {
                     "name": "Emulated-Stateless-Server",
                     "version": "1.0.0"
