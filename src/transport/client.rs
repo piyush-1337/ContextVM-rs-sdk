@@ -153,7 +153,7 @@ impl NostrClientTransport {
             jsonrpc: "2.0".to_string(),
             id: request_id.clone(),
             result: serde_json::json!({
-                "protocolVersion": "2025-03-26",
+                "protocolVersion": "2025-07-02",
                 "serverInfo": {
                     "name": "Emulated-Stateless-Server",
                     "version": "1.0.0"
@@ -275,7 +275,7 @@ mod tests {
             jsonrpc: "2.0".to_string(),
             id: request_id.clone(),
             result: serde_json::json!({
-                "protocolVersion": "2025-03-26",
+                "protocolVersion": "2025-07-02",
                 "serverInfo": {
                     "name": "Emulated-Stateless-Server",
                     "version": "1.0.0"

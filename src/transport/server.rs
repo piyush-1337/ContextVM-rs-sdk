@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use nostr_sdk::prelude::*;
 use tokio::sync::RwLock;
@@ -27,8 +27,8 @@ pub struct NostrServerTransportConfig {
     pub encryption_mode: EncryptionMode,
     /// Server information for announcements.
     pub server_info: Option<ServerInfo>,
-    /// Whether this is a public server (publishes announcements).
-    pub is_public_server: bool,
+    /// Whether this server publishes public announcements (CEP-6).
+    pub is_announced_server: bool,
     /// Allowed client public keys (hex). Empty = allow all.
     pub allowed_public_keys: Vec<String>,
     /// Capabilities excluded from pubkey whitelisting.
@@ -45,7 +45,7 @@ impl Default for NostrServerTransportConfig {
             relay_urls: vec!["wss://relay.damus.io".to_string()],
             encryption_mode: EncryptionMode::Optional,
             server_info: None,
-            is_public_server: false,
+            is_announced_server: false,
             allowed_public_keys: Vec::new(),
             excluded_capabilities: Vec::new(),
             cleanup_interval: Duration::from_secs(60),
@@ -745,7 +745,7 @@ mod tests {
     fn test_config_defaults() {
         let config = NostrServerTransportConfig::default();
         assert_eq!(config.relay_urls, vec!["wss://relay.damus.io".to_string()]);
-        assert!(!config.is_public_server);
+        assert!(!config.is_announced_server);
         assert!(config.allowed_public_keys.is_empty());
         assert!(config.excluded_capabilities.is_empty());
         assert_eq!(config.cleanup_interval, Duration::from_secs(60));
